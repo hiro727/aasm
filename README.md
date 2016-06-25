@@ -403,6 +403,76 @@ simple.aasm(:work).current
 
 ```
 
+#####WIP
+
+`Namespace` option
+
+Currently, same event name or state name across multiple state machines will `override` the previous definition.
+
+However, with `namespace: true` option, states and events should create instance methods and scopes prefixed with the name of state machine.
+
+and the prefix should be configurable by `namespace: 'state-machine-name'`
+
+```ruby
+class SimpleMultipleExample
+  include AASM
+  aasm(:cooking, namespace: true) do
+    state :idle, :initial => true
+    state :in_progress
+    state :done
+
+    event :start do
+      transitions :from => :idle, :to => :in_progress
+    end
+    event :finish do
+      transitions :from => :in_progress, :to => :done
+    end
+  end
+
+  aasm(:soccer, namespace: 'sports') do
+    state :idle, :initial => true
+    state :in_progress
+    state :done
+
+    event :start do
+      transitions :from => :idle, :to => :in_progress
+    end
+    event :finish do
+      transitions :from => :started, :to => :done
+    end
+  end
+end
+
+SimpleMultipleExample.cooking_in_progress
+# => ActiveRecordRelation []
+SimpleMultipleExample.sports_in_progress
+# => ActiveRecordRelation []
+
+simple = SimpleMultipleExample.new
+
+simple.cooking_in_progress?
+# => false
+simple.cooking_start!
+simple.cooking.finish!
+
+simple.sports_start!
+simple.sports_in_progress?
+# => true
+
+# before
+simple.aasm(:cooking).current_state
+# => :done
+simple.aasm(:soccer).current_state
+# => :in_progress
+
+# after
+simple.cooking_current_state
+# => :done
+simple.sports_current_state
+# => :in_progress
+
+```
+
 _AASM_ doesn't prohibit to define the same event in more than one state machine. The
 latest definition "wins" and overrides previous definitions. Nonetheless, a warning is issued:
 `SimpleMultipleExample: overriding method 'run'!`.
