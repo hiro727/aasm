@@ -112,21 +112,22 @@ module AASM
       @state_machine.add_event(name, options, &block)
 
       aasm_name = @name.to_sym
+      method_name = namespace? ? "#{namespace}_#{name}" : name
       event = name.to_sym
 
       # an addition over standard aasm so that, before firing an event, you can ask
       # may_event? and get back a boolean that tells you whether the guard method
       # on the transition will let this happen.
-      safely_define_method klass, "may_#{name}?", ->(*args) do
+      safely_define_method klass, "may_#{method_name}?", ->(*args) do
         aasm(aasm_name).may_fire_event?(event, *args)
       end
 
-      safely_define_method klass, "#{name}!", ->(*args, &block) do
+      safely_define_method klass, "#{method_name}!", ->(*args, &block) do
         aasm(aasm_name).current_event = :"#{name}!"
         aasm_fire_event(aasm_name, event, {:persist => true}, *args, &block)
       end
 
-      safely_define_method klass, name, ->(*args, &block) do
+      safely_define_method klass, method_name, ->(*args, &block) do
         aasm(aasm_name).current_event = event
         aasm_fire_event(aasm_name, event, {:persist => false}, *args, &block)
       end

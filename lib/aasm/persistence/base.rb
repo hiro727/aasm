@@ -67,7 +67,11 @@ module AASM
     end
 
     def create_scope(name)
-      @klass.aasm_create_scope(@name, name)
+      if namespace?
+        @klass.aasm_create_scope(@name, name, "#{namespace}_#{name.to_s}".to_sym)
+      else
+        @klass.aasm_create_scope(@name, name, name)
+      end
     end
   end # Base
 

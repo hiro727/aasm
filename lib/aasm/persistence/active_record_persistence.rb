@@ -38,9 +38,9 @@ module AASM
       end
 
       module ClassMethods
-        def aasm_create_scope(state_machine_name, scope_name)
+        def aasm_create_scope(state_machine_name, target_name, scope_name=target_name)
           conditions = {
-            table_name => { aasm(state_machine_name).attribute_name => scope_name.to_s }
+            table_name => { aasm(state_machine_name).attribute_name => target_name.to_s }
           }
           if ActiveRecord::VERSION::MAJOR >= 3
             class_eval do
